@@ -3,9 +3,8 @@
 import { Suspense, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { upload } from "@vercel/blob/client";
 import { ArrowLeft, Loader2, Paperclip, CheckCircle2 } from "lucide-react";
-import { createSurat } from "../../lib/api";
+import { createSurat, uploadFile } from "../../lib/api";
 import { KATEGORI, JENIS_SURAT } from "../../lib/constants";
 
 const inputClass =
@@ -64,11 +63,7 @@ function TambahForm() {
       let file_path = null;
 
       if (file) {
-        const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_");
-        const blob = await upload(`${form.kategori}/${safeName}`, file, {
-          access: "public",
-          handleUploadUrl: "/api/upload",
-        });
+        const blob = await uploadFile(file, form.kategori);
         file_url = blob.url;
         file_path = blob.pathname;
       }
@@ -269,7 +264,7 @@ function TambahForm() {
             </div>
           )}
           <p className="text-xs text-slate-400 mt-1.5">
-            Maksimal ±50 MB. Dokumen dibuat manual (Word) lalu diunggah di sini.
+            Maksimal ±4 MB. Dokumen dibuat manual (Word) lalu diunggah di sini.
           </p>
         </div>
 

@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { upload } from "@vercel/blob/client";
 import {
   ArrowLeft,
   Plus,
@@ -14,7 +13,12 @@ import {
   RefreshCw,
   Loader2,
 } from "lucide-react";
-import { getSurat, deleteSurat, updateSuratFile } from "../../../../lib/api";
+import {
+  getSurat,
+  deleteSurat,
+  updateSuratFile,
+  uploadFile,
+} from "../../../../lib/api";
 import { KATEGORI, formatTanggal } from "../../../../lib/constants";
 import ConfigNotice from "../../../ConfigNotice";
 
@@ -30,11 +34,7 @@ function SuratCard({ surat, slug, onChange, onDelete }) {
     setError("");
     setUploading(true);
     try {
-      const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_");
-      const blob = await upload(`${slug}/${Date.now()}_${safeName}`, file, {
-        access: "public",
-        handleUploadUrl: "/api/upload",
-      });
+      const blob = await uploadFile(file, slug);
       const updated = await updateSuratFile(surat.id, blob.url, blob.pathname);
       onChange(updated);
     } catch (err) {
