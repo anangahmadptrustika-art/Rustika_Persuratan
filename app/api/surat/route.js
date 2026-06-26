@@ -71,6 +71,43 @@ export async function POST(req) {
   }
 }
 
+// PATCH /api/surat  (body: { id, file_url, file_path })
+// Memperbarui dokumen sebuah surat yang sudah ada.
+export async function PATCH(req) {
+  if (!isDbConfigured) {
+    return Response.json({ error: "Database belum dikonfigurasi." }, { status: 400 });
+  }
+  try {
+    await ensureSchema();
+    const b = await req.json();
+    if (!b.id) {
+      return Response.json({ error: "id wajib diisi." }, { status: 400 });
+    }
+    // Hapus file lama bila diganti dengan file baru yang berbeda.
+    const existing = await sql`select file_url from surat where id = ${b.id}`;
+    const oldUrl = existing[0]?.file_url;
+    if (oldUrl && b.file_url && oldUrl !== b.file_url) {
+      try {
+        await del(oldUrl);
+      } catch (e) {
+        // abaikan kalau file lama sudah tidak ada
+      }
+    }
+    const rows = await sql`
+      update surat
+      set file_url = ${b.file_url || null}, file_path = ${b.file_path || null}
+      where id = ${b.id}
+      returning *
+    `;
+    if (rows.length === 0) {
+      return Response.json({ error: "Surat tidak ditemukan." }, { status: 404 });
+    }
+    return Response.json({ data: rows[0] });
+  } catch (err) {
+    return Response.json({ error: err.message }, { status: 500 });
+  }
+}
+
 // DELETE /api/surat?id=...
 export async function DELETE(req) {
   if (!isDbConfigured) {
