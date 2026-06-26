@@ -3,11 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import {
-  supabase,
-  isSupabaseConfigured,
-  TABLE,
-} from "../../../../lib/supabaseClient";
+import { getSurat, deleteSurat } from "../../../../lib/api";
 import { KATEGORI, formatTanggal } from "../../../../lib/constants";
 import ConfigNotice from "../../../ConfigNotice";
 
@@ -19,27 +15,23 @@ export default function JenisPage() {
   const kategori = KATEGORI[slug];
 
   const [rows, setRows] = useState(null);
+  const [configured, setConfigured] = useState(true);
   const [error, setError] = useState("");
   const [deletingId, setDeletingId] = useState(null);
 
   async function load() {
-    if (!isSupabaseConfigured) {
+    const res = await getSurat({ kategori: kategori.value, jenis });
+    if (res.configured === false) {
+      setConfigured(false);
       setRows([]);
       return;
     }
-    const { data, error } = await supabase
-      .from(TABLE)
-      .select("*")
-      .eq("kategori", kategori.value)
-      .eq("jenis_surat", jenis)
-      .order("tanggal_surat", { ascending: true, nullsFirst: true })
-      .order("created_at", { ascending: true });
-    if (error) {
-      setError(error.message);
+    if (res.error) {
+      setError(res.error);
       setRows([]);
       return;
     }
-    setRows(data || []);
+    setRows(res.data || []);
   }
 
   useEffect(() => {
@@ -54,17 +46,14 @@ export default function JenisPage() {
   async function handleDelete(row) {
     if (!confirm(`Hapus surat "${row.perihal || row.nomor_surat}"?`)) return;
     setDeletingId(row.id);
-    // Hapus file dari storage bila ada
-    if (row.file_path) {
-      await supabase.storage.from("dokumen-surat").remove([row.file_path]);
+    try {
+      await deleteSurat(row.id);
+      setRows((prev) => prev.filter((r) => r.id !== row.id));
+    } catch (err) {
+      alert("Gagal menghapus: " + err.message);
+    } finally {
+      setDeletingId(null);
     }
-    const { error } = await supabase.from(TABLE).delete().eq("id", row.id);
-    setDeletingId(null);
-    if (error) {
-      alert("Gagal menghapus: " + error.message);
-      return;
-    }
-    setRows((prev) => prev.filter((r) => r.id !== row.id));
   }
 
   if (!kategori) return null;
@@ -79,7 +68,7 @@ export default function JenisPage() {
         {kategori.label} · {rows === null ? "memuat…" : `${rows.length} surat`}
       </p>
 
-      {!isSupabaseConfigured && <ConfigNotice />}
+      {!configured && <ConfigNotice />}
       {error && <div className="alert-error">Gagal memuat data: {error}</div>}
 
       {rows === null ? (

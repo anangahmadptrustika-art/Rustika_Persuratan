@@ -8,46 +8,46 @@ Alur: **Beranda → pilih Surat Keluar / Surat Masuk → pilih jenis surat → l
 daftar surat (tanggal, nomor, tujuan, perihal) → buka dokumennya.** Surat baru
 ditambah lewat tombol **“+ Tambah Surat”**, dokumen Word/PDF diunggah manual.
 
-Dibangun dengan **Next.js** (React) + **Supabase** (database PostgreSQL +
-penyimpanan file). Warna: abu-abu, putih, biru, hitam.
+Dibangun dengan **Next.js** (React) + **Neon Postgres** (database) + **Vercel
+Blob** (penyimpanan file). Warna: abu-abu, putih, biru, hitam.
 
 ---
 
-## 🚀 Cara setup (sekali saja, ±10 menit)
+## 🚀 Cara setup di Vercel (sekali saja, ±10 menit)
 
-### 1. Buat project Supabase (gratis)
-1. Daftar / masuk di <https://supabase.com>.
-2. Klik **New project**, beri nama (mis. `rustika-persuratan`), simpan password
-   database, pilih region terdekat (Singapore), lalu **Create**.
+Aplikasi ini sudah terhubung otomatis ke Vercel. Yang perlu ditambahkan hanya
+**database** dan **penyimpanan file**, keduanya tersedia gratis di Vercel.
 
-### 2. Buat tabel & penyimpanan
-1. Di dashboard Supabase, buka menu **SQL Editor → New query**.
-2. Salin seluruh isi file [`supabase/schema.sql`](supabase/schema.sql),
-   tempel, lalu klik **Run**.
-3. (Opsional) Untuk memuat data surat yang sudah ada dari Excel, jalankan juga
-   isi file [`supabase/seed.sql`](supabase/seed.sql) dengan cara yang sama.
+### 1. Tambah database Neon Postgres
+1. Buka project **rustika-persuratan** di <https://vercel.com>.
+2. Masuk tab **Storage → Create Database → Neon (Postgres)** → ikuti, pilih
+   region terdekat (Singapore), lalu **Connect** ke project ini.
+3. Vercel otomatis menambahkan env var `DATABASE_URL` ke project.
+   > Tabel surat **dibuat otomatis** oleh aplikasi saat pertama kali dibuka,
+   > dan langsung diisi 18 data surat keluar dari Excel. Tidak perlu jalankan
+   > SQL manual. (File `db/schema.sql` hanya untuk referensi.)
 
-### 3. Ambil kunci API
-Buka **Project Settings → API**, salin dua nilai ini:
-- **Project URL** → `NEXT_PUBLIC_SUPABASE_URL`
-- **anon public** key → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+### 2. Tambah penyimpanan Vercel Blob
+1. Di tab **Storage → Create → Blob**, beri nama (mis. `dokumen-surat`),
+   lalu **Connect** ke project ini.
+2. Vercel otomatis menambahkan env var `BLOB_READ_WRITE_TOKEN`.
 
-### 4. Jalankan / deploy
-Salin `.env.local.example` menjadi `.env.local`, isi kedua nilai di atas.
+### 3. Redeploy
+Buka tab **Deployments → (deploy terbaru) → ⋯ → Redeploy** agar env var baru
+terpakai. Selesai — aplikasi langsung berfungsi dan bisa dibuka di HP/laptop.
 
-**Jalankan lokal:**
+---
+
+## 💻 Menjalankan lokal (opsional)
+
 ```bash
 npm install
-npm run dev
-# buka http://localhost:3000
+cp .env.local.example .env.local   # isi DATABASE_URL & BLOB_READ_WRITE_TOKEN
+npm run dev                         # buka http://localhost:3000
 ```
 
-**Deploy online (Vercel):**
-1. Buka <https://vercel.com>, **Add New → Project**, import repository ini.
-2. Pada **Environment Variables**, tambahkan:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-3. Klik **Deploy**. Aplikasi langsung bisa dibuka lewat link Vercel di HP/laptop.
+`DATABASE_URL` bisa diambil dari connection string Neon, dan
+`BLOB_READ_WRITE_TOKEN` dari Storage → Blob → `.env.local` di dashboard Vercel.
 
 ---
 
@@ -68,8 +68,16 @@ npm run dev
 
 ---
 
+## 🧱 Arsitektur singkat
+
+- **Frontend**: Next.js App Router (komponen client).
+- **API**: route di `app/api/surat` (CRUD) & `app/api/upload` (token unggah Blob).
+- **Database**: Neon Postgres via `@neondatabase/serverless` (`lib/db.js`).
+  Skema & data awal dibuat otomatis.
+- **File**: Vercel Blob (`@vercel/blob`), unggah langsung dari browser (client
+  upload) agar mendukung file besar.
+
 ## 📝 Catatan
 - **Tanpa login** sesuai permintaan — siapa pun yang punya link bisa melihat &
   menambah surat. Jika nanti perlu dibatasi, login bisa ditambahkan.
-- Bucket penyimpanan bersifat **publik** agar dokumen bisa dibuka lewat link.
 - Jenis surat baru bisa ditambah lewat pilihan **“Lainnya”** pada form.

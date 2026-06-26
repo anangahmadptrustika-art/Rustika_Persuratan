@@ -2,28 +2,27 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { supabase, isSupabaseConfigured, TABLE } from "../lib/supabaseClient";
+import { getSurat } from "../lib/api";
 import ConfigNotice from "./ConfigNotice";
 
 export default function Home() {
   const [counts, setCounts] = useState({ KELUAR: null, MASUK: null });
+  const [configured, setConfigured] = useState(true);
 
   useEffect(() => {
-    if (!isSupabaseConfigured) return;
     let active = true;
     (async () => {
-      const keluar = await supabase
-        .from(TABLE)
-        .select("id", { count: "exact", head: true })
-        .eq("kategori", "KELUAR");
-      const masuk = await supabase
-        .from(TABLE)
-        .select("id", { count: "exact", head: true })
-        .eq("kategori", "MASUK");
+      const res = await getSurat();
       if (!active) return;
+      if (res.configured === false) {
+        setConfigured(false);
+        setCounts({ KELUAR: 0, MASUK: 0 });
+        return;
+      }
+      const data = res.data || [];
       setCounts({
-        KELUAR: keluar.count ?? 0,
-        MASUK: masuk.count ?? 0,
+        KELUAR: data.filter((s) => s.kategori === "KELUAR").length,
+        MASUK: data.filter((s) => s.kategori === "MASUK").length,
       });
     })();
     return () => {
@@ -38,7 +37,7 @@ export default function Home() {
         Pilih kategori surat untuk melihat, menambah, atau membuka dokumen.
       </p>
 
-      {!isSupabaseConfigured && <ConfigNotice />}
+      {!configured && <ConfigNotice />}
 
       <div className="home-grid">
         <Link href="/surat/keluar" className="big-card keluar">

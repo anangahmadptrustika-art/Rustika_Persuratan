@@ -1,21 +1,18 @@
 "use client";
 
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import {
-  supabase,
-  isSupabaseConfigured,
-  TABLE,
-  BUCKET,
-} from "../../lib/supabaseClient";
+import { upload } from "@vercel/blob/client";
+import { createSurat } from "../../lib/api";
 import { KATEGORI, JENIS_SURAT } from "../../lib/constants";
-import ConfigNotice from "../ConfigNotice";
 
 function TambahForm() {
   const router = useRouter();
   const search = useSearchParams();
-  const initialKategori = KATEGORI[search.get("kategori")] ? search.get("kategori") : "keluar";
+  const initialKategori = KATEGORI[search.get("kategori")]
+    ? search.get("kategori")
+    : "keluar";
   const initialJenis = search.get("jenis") || "";
 
   const fileRef = useRef(null);
@@ -57,10 +54,6 @@ function TambahForm() {
       setError("Perihal surat wajib diisi.");
       return;
     }
-    if (!isSupabaseConfigured) {
-      setError("Database belum dikonfigurasi. Lihat README.md.");
-      return;
-    }
 
     setSaving(true);
     try {
@@ -69,17 +62,15 @@ function TambahForm() {
 
       if (file) {
         const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_");
-        const path = `${form.kategori}/${Date.now()}_${safeName}`;
-        const { error: upErr } = await supabase.storage
-          .from(BUCKET)
-          .upload(path, file, { upsert: false });
-        if (upErr) throw upErr;
-        file_path = path;
-        const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(path);
-        file_url = pub.publicUrl;
+        const blob = await upload(`${form.kategori}/${safeName}`, file, {
+          access: "public",
+          handleUploadUrl: "/api/upload",
+        });
+        file_url = blob.url;
+        file_path = blob.pathname;
       }
 
-      const payload = {
+      await createSurat({
         kategori: KATEGORI[form.kategori].value,
         jenis_surat: jenisFinal,
         tanggal_surat: form.tanggal_surat || null,
@@ -91,16 +82,11 @@ function TambahForm() {
         keterangan: form.keterangan.trim() || null,
         file_url,
         file_path,
-      };
-
-      const { error: insErr } = await supabase.from(TABLE).insert(payload);
-      if (insErr) throw insErr;
+      });
 
       setSuccess(true);
       setTimeout(() => {
-        router.push(
-          `/surat/${form.kategori}/${encodeURIComponent(jenisFinal)}`
-        );
+        router.push(`/surat/${form.kategori}/${encodeURIComponent(jenisFinal)}`);
       }, 700);
     } catch (err) {
       setError(err.message || "Terjadi kesalahan saat menyimpan.");
@@ -112,16 +98,12 @@ function TambahForm() {
 
   return (
     <div>
-      <Link
-        href={`/surat/${form.kategori}`}
-        className="back-link"
-      >
+      <Link href={`/surat/${form.kategori}`} className="back-link">
         ← {kategoriLabel}
       </Link>
       <h1 className="page-title">Tambah Surat</h1>
       <p className="page-sub">Isi data surat lalu unggah dokumennya (opsional).</p>
 
-      {!isSupabaseConfigured && <ConfigNotice />}
       {error && <div className="alert-error">{error}</div>}
       {success && (
         <div className="alert-success">✓ Surat berhasil disimpan! Mengalihkan…</div>
@@ -244,10 +226,7 @@ function TambahForm() {
 
         <div className="form-group">
           <label>Dokumen Surat (Word / PDF / gambar)</label>
-          <div
-            className="file-drop"
-            onClick={() => fileRef.current?.click()}
-          >
+          <div className="file-drop" onClick={() => fileRef.current?.click()}>
             {file ? (
               <span>Klik untuk mengganti file</span>
             ) : (

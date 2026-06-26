@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { supabase, isSupabaseConfigured, TABLE } from "../../../lib/supabaseClient";
+import { getSurat } from "../../../lib/api";
 import { KATEGORI, JENIS_SURAT } from "../../../lib/constants";
 import ConfigNotice from "../../ConfigNotice";
 
@@ -14,6 +14,7 @@ export default function KategoriPage() {
   const kategori = KATEGORI[slug];
 
   const [rows, setRows] = useState(null); // null = loading
+  const [configured, setConfigured] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -21,23 +22,21 @@ export default function KategoriPage() {
       router.replace("/");
       return;
     }
-    if (!isSupabaseConfigured) {
-      setRows([]);
-      return;
-    }
     let active = true;
     (async () => {
-      const { data, error } = await supabase
-        .from(TABLE)
-        .select("jenis_surat")
-        .eq("kategori", kategori.value);
+      const res = await getSurat({ kategori: kategori.value });
       if (!active) return;
-      if (error) {
-        setError(error.message);
+      if (res.configured === false) {
+        setConfigured(false);
         setRows([]);
         return;
       }
-      setRows(data || []);
+      if (res.error) {
+        setError(res.error);
+        setRows([]);
+        return;
+      }
+      setRows(res.data || []);
     })();
     return () => {
       active = false;
@@ -46,16 +45,12 @@ export default function KategoriPage() {
 
   if (!kategori) return null;
 
-  // Hitung jumlah surat per jenis
   const counts = {};
   (rows || []).forEach((r) => {
     const j = r.jenis_surat || "Lainnya";
     counts[j] = (counts[j] || 0) + 1;
   });
-  // Gabungkan jenis bawaan + jenis lain yang sudah ada di data
-  const allJenis = Array.from(
-    new Set([...JENIS_SURAT, ...Object.keys(counts)])
-  );
+  const allJenis = Array.from(new Set([...JENIS_SURAT, ...Object.keys(counts)]));
 
   return (
     <div>
@@ -65,7 +60,7 @@ export default function KategoriPage() {
       <h1 className="page-title">{kategori.label}</h1>
       <p className="page-sub">Pilih jenis surat untuk melihat daftarnya.</p>
 
-      {!isSupabaseConfigured && <ConfigNotice />}
+      {!configured && <ConfigNotice />}
       {error && <div className="alert-error">Gagal memuat data: {error}</div>}
 
       {rows === null ? (
