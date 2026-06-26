@@ -4,9 +4,8 @@ import { getBlobToken } from "../../../lib/blob";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-// Upload via server: browser mengirim file (FormData) ke sini, lalu server
-// menyimpannya ke Vercel Blob dan mengembalikan URL-nya. Lebih andal daripada
-// client-upload (tidak bergantung pada webhook penyelesaian).
+// Upload via server ke Vercel Blob (store PRIVATE). File ditampilkan lewat
+// proxy /api/file agar bisa dibuka tanpa login.
 export async function POST(req) {
   const token = getBlobToken();
   if (!token) {
@@ -14,8 +13,8 @@ export async function POST(req) {
     return Response.json(
       {
         error:
-          "Penyimpanan file (Vercel Blob) belum aktif. Hubungkan Blob store " +
-          "dan pastikan BLOB_READ_WRITE_TOKEN ada di Production.",
+          "Penyimpanan file (Vercel Blob) belum aktif. Pastikan " +
+          "BLOB_READ_WRITE_TOKEN ada di environment Production.",
       },
       { status: 400 }
     );
@@ -32,12 +31,14 @@ export async function POST(req) {
 
     const safeName = (file.name || "dokumen").replace(/[^a-zA-Z0-9.\-_]/g, "_");
     const blob = await put(`${kategori}/${Date.now()}_${safeName}`, file, {
-      access: "public",
+      access: "private",
       token,
       addRandomSuffix: true,
     });
 
-    return Response.json({ url: blob.url, pathname: blob.pathname });
+    // url = link tampil (proxy), pathname = URL blob asli (untuk hapus)
+    const viewUrl = `/api/file?src=${encodeURIComponent(blob.url)}`;
+    return Response.json({ url: viewUrl, pathname: blob.url });
   } catch (err) {
     console.error("[upload] put gagal:", err);
     return Response.json({ error: err.message }, { status: 400 });

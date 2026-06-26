@@ -85,11 +85,11 @@ export async function PATCH(req) {
       return Response.json({ error: "id wajib diisi." }, { status: 400 });
     }
     // Hapus file lama bila diganti dengan file baru yang berbeda.
-    const existing = await sql`select file_url from surat where id = ${b.id}`;
-    const oldUrl = existing[0]?.file_url;
-    if (oldUrl && b.file_url && oldUrl !== b.file_url) {
+    const existing = await sql`select file_path from surat where id = ${b.id}`;
+    const oldPath = existing[0]?.file_path;
+    if (oldPath && b.file_path && oldPath !== b.file_path) {
       try {
-        await del(oldUrl, { token: getBlobToken() });
+        await del(oldPath, { token: getBlobToken() });
       } catch (e) {
         // abaikan kalau file lama sudah tidak ada
       }
@@ -121,11 +121,11 @@ export async function DELETE(req) {
     if (!id) {
       return Response.json({ error: "id wajib diisi." }, { status: 400 });
     }
-    const rows = await sql`select file_url from surat where id = ${id}`;
-    const fileUrl = rows[0]?.file_url;
-    if (fileUrl) {
+    const rows = await sql`select file_path from surat where id = ${id}`;
+    const filePath = rows[0]?.file_path;
+    if (filePath) {
       try {
-        await del(fileUrl, { token: getBlobToken() });
+        await del(filePath, { token: getBlobToken() });
       } catch (e) {
         // abaikan kalau file sudah tidak ada
       }
