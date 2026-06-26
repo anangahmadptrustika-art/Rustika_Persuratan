@@ -1,5 +1,6 @@
 import { sql, ensureSchema, isDbConfigured } from "../../../lib/db";
 import { del } from "@vercel/blob";
+import { getBlobToken } from "../../../lib/blob";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -88,7 +89,7 @@ export async function PATCH(req) {
     const oldUrl = existing[0]?.file_url;
     if (oldUrl && b.file_url && oldUrl !== b.file_url) {
       try {
-        await del(oldUrl);
+        await del(oldUrl, { token: getBlobToken() });
       } catch (e) {
         // abaikan kalau file lama sudah tidak ada
       }
@@ -124,7 +125,7 @@ export async function DELETE(req) {
     const fileUrl = rows[0]?.file_url;
     if (fileUrl) {
       try {
-        await del(fileUrl);
+        await del(fileUrl, { token: getBlobToken() });
       } catch (e) {
         // abaikan kalau file sudah tidak ada
       }
