@@ -32,10 +32,10 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div>
       <div className="mb-8">
         <h2 className="text-3xl font-bold text-slate-800 flex items-center gap-2">
-          Selamat datang <span className="animate-bounce origin-bottom">👋</span>
+          Selamat datang <span>👋</span>
         </h2>
         <p className="text-slate-500 mt-2">
           Pilih kategori surat untuk melihat, menambah, atau membuka dokumen.
@@ -52,10 +52,9 @@ export default function Home() {
         {/* Surat Keluar */}
         <Link
           href="/surat/keluar"
-          className="group relative bg-white rounded-2xl p-8 text-left transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border border-slate-100 overflow-hidden"
+          className="group bg-white rounded-2xl p-8 text-left transition-shadow duration-200 hover:shadow-lg border border-slate-100"
         >
-          <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-blue-50 rounded-full blur-3xl opacity-50 group-hover:opacity-100 transition-opacity"></div>
-          <div className="bg-blue-50 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 text-blue-600 shadow-sm group-hover:scale-110 transition-transform duration-300">
+          <div className="bg-blue-50 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 text-blue-600 shadow-sm">
             <Send size={32} />
           </div>
           <h3 className="text-2xl font-bold text-slate-800 mb-2 group-hover:text-blue-700 transition-colors">
@@ -72,10 +71,9 @@ export default function Home() {
         {/* Surat Masuk */}
         <Link
           href="/surat/masuk"
-          className="group relative bg-white rounded-2xl p-8 text-left transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border border-slate-100 overflow-hidden"
+          className="group bg-white rounded-2xl p-8 text-left transition-shadow duration-200 hover:shadow-lg border border-slate-100"
         >
-          <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-emerald-50 rounded-full blur-3xl opacity-50 group-hover:opacity-100 transition-opacity"></div>
-          <div className="bg-emerald-50 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 text-emerald-600 shadow-sm group-hover:scale-110 transition-transform duration-300">
+          <div className="bg-emerald-50 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 text-emerald-600 shadow-sm">
             <Inbox size={32} />
           </div>
           <h3 className="text-2xl font-bold text-slate-800 mb-2 group-hover:text-emerald-700 transition-colors">

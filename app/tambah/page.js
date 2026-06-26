@@ -95,7 +95,7 @@ function TambahForm() {
   const kategoriLabel = KATEGORI[form.kategori]?.label;
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+    <div>
       <Link
         href={`/surat/${form.kategori}`}
         className="flex items-center text-blue-600 hover:text-blue-800 font-medium mb-6 transition-colors w-fit"

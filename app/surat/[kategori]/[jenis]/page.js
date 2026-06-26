@@ -223,7 +223,7 @@ export default function JenisPage() {
   if (!kategori) return null;
 
   return (
-    <div className="animate-in fade-in slide-in-from-right-8 duration-300 pb-20">
+    <div className="pb-20">
       <Link
         href={`/surat/${slug}`}
         className="flex items-center text-blue-600 hover:text-blue-800 font-medium mb-6 transition-colors w-fit"
@@ -282,7 +282,7 @@ export default function JenisPage() {
 
       <Link
         href={`/tambah?kategori=${slug}&jenis=${encodeURIComponent(jenis)}`}
-        className="fixed bottom-8 right-8 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-full shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all flex items-center gap-2"
+        className="fixed bottom-8 right-8 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-full shadow-lg transition-colors flex items-center gap-2"
       >
         <Plus size={20} /> Tambah Surat
       </Link>

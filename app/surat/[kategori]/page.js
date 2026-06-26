@@ -55,7 +55,7 @@ export default function KategoriPage() {
   const allJenis = Array.from(new Set([...JENIS_SURAT, ...Object.keys(counts)]));
 
   return (
-    <div className="animate-in fade-in slide-in-from-right-8 duration-300 pb-20">
+    <div className="pb-20">
       <Link
         href="/"
         className="flex items-center text-blue-600 hover:text-blue-800 font-medium mb-6 transition-colors w-fit"
@@ -96,7 +96,7 @@ export default function KategoriPage() {
               <Link
                 key={jenis}
                 href={`/surat/${slug}/${encodeURIComponent(jenis)}`}
-                className="w-full bg-white rounded-xl p-4 flex items-center justify-between border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-300 transition-all group"
+                className="w-full bg-white rounded-xl p-4 flex items-center justify-between border border-slate-200 shadow-sm hover:border-blue-300 transition-colors group"
               >
                 <div className="flex items-center gap-4">
                   <div className={`p-3 rounded-lg ${meta.bg} ${meta.color}`}>
@@ -113,7 +113,7 @@ export default function KategoriPage() {
                 </div>
                 <ChevronRight
                   size={20}
-                  className="text-slate-300 group-hover:text-blue-500 transition-colors group-hover:translate-x-1 duration-300"
+                  className="text-slate-300 group-hover:text-blue-500 transition-colors"
                 />
               </Link>
             );
@@ -123,7 +123,7 @@ export default function KategoriPage() {
 
       <Link
         href={`/tambah?kategori=${slug}`}
-        className="fixed bottom-8 right-8 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-full shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all flex items-center gap-2"
+        className="fixed bottom-8 right-8 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-full shadow-lg transition-colors flex items-center gap-2"
       >
         <Plus size={20} /> Tambah Surat
       </Link>
